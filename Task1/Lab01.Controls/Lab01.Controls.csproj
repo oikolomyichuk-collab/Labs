@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <PackageId>Lab01.Controls</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Oleksandr Kolomyichuk</Authors>
+    <Title>Tip calculator.</Title>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="TipCalculatorControl.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="TipCalculatorControl.ico" />
+  </ItemGroup>
+
+</Project>
