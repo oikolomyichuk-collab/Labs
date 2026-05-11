@@ -30,7 +30,7 @@ namespace Domain
             if (optionsBuilder.IsConfigured)
                 return;
 
-            var currentDirectory = new DirectoryInfo(Directory.GetCurrentDirectory());
+            var currentDirectory = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory);
 
             while (currentDirectory != null &&
                    !currentDirectory.GetFiles("*.sln").Any())
@@ -38,8 +38,18 @@ namespace Domain
                 currentDirectory = currentDirectory.Parent;
             }
 
-            var solutionPath = currentDirectory.FullName;
-            var dataFolder = Path.Combine(solutionPath, "Data");
+            string basePath;
+
+            if (currentDirectory != null)
+            {
+                basePath = currentDirectory.FullName;
+            }
+            else
+            {
+                basePath = AppDomain.CurrentDomain.BaseDirectory;
+            }
+
+            var dataFolder = @"C:\Users\Администратор\Desktop\C#\Labs\Task2\Data";
 
             if (!Directory.Exists(dataFolder))
             {
@@ -49,7 +59,9 @@ namespace Domain
             var dbPath = Path.Combine(dataFolder, "production.db");
 
             optionsBuilder.UseSqlite($"Data Source={dbPath}");
+
         }
+        
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -1,11 +1,24 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.14.36623.8 d17.14
+# Visual Studio Version 18
+VisualStudioVersion = 18.5.11723.231 stable
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Domain", "Domain\Domain.csproj", "{836540E1-6B3E-451F-96AA-4547B456E4D5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Domain.Tests", "Domain.Tests\Domain.Tests.csproj", "{EBCFE187-5CB1-4017-897E-F929452C74C3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TelegramBot", "..\Task3\ConsoleApp1\TelegramBot.csproj", "{E3416BD4-A319-4E8C-B6C0-BDF6C1808E1D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{836540E1-6B3E-451F-96AA-4547B456E4D5} = {836540E1-6B3E-451F-96AA-4547B456E4D5}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Task4", "..\Task4\Task4\Task4.csproj", "{3A86DC67-A7CF-4BA8-846C-1EBDBD2DEAA5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReportPluginBase", "ReportPluginBase\ReportPluginBase.csproj", "{A93BA8E0-B697-442F-9E01-9D442D40EDF9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WordReportPlugin", "WordReportPlugin\WordReportPlugin.csproj", "{CA2F0EAB-C8A9-404F-A202-771492C6D983}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelReportPlugin", "ExcelReportPlugin\ExcelReportPlugin.csproj", "{98AC819F-6455-471D-AC56-2F4E4A4ED098}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +34,26 @@ Global
 		{EBCFE187-5CB1-4017-897E-F929452C74C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EBCFE187-5CB1-4017-897E-F929452C74C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EBCFE187-5CB1-4017-897E-F929452C74C3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E3416BD4-A319-4E8C-B6C0-BDF6C1808E1D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E3416BD4-A319-4E8C-B6C0-BDF6C1808E1D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E3416BD4-A319-4E8C-B6C0-BDF6C1808E1D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E3416BD4-A319-4E8C-B6C0-BDF6C1808E1D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A86DC67-A7CF-4BA8-846C-1EBDBD2DEAA5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A86DC67-A7CF-4BA8-846C-1EBDBD2DEAA5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A86DC67-A7CF-4BA8-846C-1EBDBD2DEAA5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A86DC67-A7CF-4BA8-846C-1EBDBD2DEAA5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A93BA8E0-B697-442F-9E01-9D442D40EDF9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A93BA8E0-B697-442F-9E01-9D442D40EDF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A93BA8E0-B697-442F-9E01-9D442D40EDF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A93BA8E0-B697-442F-9E01-9D442D40EDF9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CA2F0EAB-C8A9-404F-A202-771492C6D983}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CA2F0EAB-C8A9-404F-A202-771492C6D983}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CA2F0EAB-C8A9-404F-A202-771492C6D983}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CA2F0EAB-C8A9-404F-A202-771492C6D983}.Release|Any CPU.Build.0 = Release|Any CPU
+		{98AC819F-6455-471D-AC56-2F4E4A4ED098}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{98AC819F-6455-471D-AC56-2F4E4A4ED098}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{98AC819F-6455-471D-AC56-2F4E4A4ED098}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{98AC819F-6455-471D-AC56-2F4E4A4ED098}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
