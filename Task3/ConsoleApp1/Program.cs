@@ -15,6 +15,7 @@ namespace TelegramBot
         static TelegramBotClient bot = null!;
         static DB db = null!;
         static Dictionary<long, UserSession> sessions = new Dictionary<long, UserSession>();
+        static EntityTextServant textServant = new EntityTextServant();
 
         static UserSession GetOrCreateSession(long chatId)
         {
@@ -343,7 +344,7 @@ namespace TelegramBot
                         session.Endb["OperationCode"] = text;
                         session.Un = Userenum.operation_workshop_number;
 
-                        await bot.SendMessage(chatId, "Введіть  номер цеху, від 1 до 20 символів");
+                        await bot.SendMessage(chatId, "Введіть номер цеху, від 1 до 20:");
                     }
                     else
                     {
@@ -515,7 +516,7 @@ namespace TelegramBot
 
                         existing.WorkshopNumber = int.Parse(session.Endb["WorkshopNumber"]);
                         existing.DurationHours = int.Parse(session.Endb["DurationHours"]);
-                        existing.Cost = costUpdate;
+                        existing.Cost = Math.Round(costUpdate, 2);
 
                         db.repoOperation.Update(existing);
                         db.repoOperation.Save();
@@ -716,12 +717,7 @@ namespace TelegramBot
 
                     foreach (var d in items)
                     {
-                        text.AppendLine($"ID: {d.DetailCode}");
-                        text.AppendLine($"Назва деталі : {d.DetailName}");
-                        text.AppendLine($"Маса, кг: {d.Mass}");
-                        text.AppendLine($"Децимальний номер деталі: {d.DecimalNumber}");
-                        text.AppendLine($"Марка сплаву : {d.AlloyGrade}");
-                        text.AppendLine();
+                        text.AppendLine(textServant.FormatDetail(d));
                     }
 
                     await bot.SendMessage(chatId, text.ToString());
@@ -758,11 +754,7 @@ namespace TelegramBot
 
                     foreach (var o in items)
                     {
-                        text.AppendLine($"ID: {o.OperationCode}");
-                        text.AppendLine($"Номер цеху: {o.WorkshopNumber}");
-                        text.AppendLine($"Тривалість операції, годин: {o.DurationHours}");
-                        text.AppendLine($"Вартість виконання операції, грн: {o.Cost}");
-                        text.AppendLine();
+                        text.AppendLine(textServant.FormatOperation(o));
                     }
 
                     await bot.SendMessage(chatId, text.ToString());
@@ -799,10 +791,7 @@ namespace TelegramBot
 
                     foreach (var p in items)
                     {
-                        text.AppendLine($"ID деталі: {p.DetailCode}");
-                        text.AppendLine($"Номер операції: {p.OperationNumberInProcess}");
-                        text.AppendLine($"ID операції: {p.OperationCode}");
-                        text.AppendLine();
+                        text.AppendLine(textServant.FormatProduction(p));
                     }
 
                     await bot.SendMessage(chatId, text.ToString());
