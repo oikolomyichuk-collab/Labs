@@ -49,7 +49,7 @@ namespace Domain
                 basePath = AppDomain.CurrentDomain.BaseDirectory;
             }
 
-            var dataFolder = @"C:\Users\Администратор\Desktop\C#\Labs\Task2\Data";
+            var dataFolder = @"C:\Users\korsa\OneDrive\Desktop\Labs\Task2\Data";
 
             if (!Directory.Exists(dataFolder))
             {
