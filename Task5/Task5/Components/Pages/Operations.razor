@@ -1,0 +1,219 @@
+﻿@page "/operations"
+@rendermode InteractiveServer
+
+@using Domain
+@using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<Storage> DbFactory
+
+<h3>Операції</h3>
+
+@if (!string.IsNullOrWhiteSpace(Message))
+{
+    <div class="alert alert-info">@Message</div>
+}
+
+<div class="card mb-4">
+    <div class="card-header">
+        @(IsEditMode ? "Редагування операції" : "Додавання операції")
+    </div>
+
+    <div class="card-body">
+        <div class="mb-2">
+            <label>Код операції</label>
+            <input class="form-control" type="number" @bind="CurrentOperation.OperationCode" disabled="@IsEditMode" />
+        </div>
+
+        <div class="mb-2">
+            <label>Номер цеху</label>
+            <input class="form-control" type="number" @bind="CurrentOperation.WorkshopNumber" />
+        </div>
+
+        <div class="mb-2">
+            <label>Тривалість операції, годин</label>
+            <input class="form-control" type="number" @bind="CurrentOperation.DurationHours" />
+        </div>
+
+        <div class="mb-2">
+            <label>Вартість виконання операції, грн</label>
+            <input class="form-control" type="number" step="0.01" @bind="CurrentOperation.Cost" />
+        </div>
+
+        <button class="btn btn-primary me-2" @onclick="SaveOperation">
+            @(IsEditMode ? "Зберегти зміни" : "Додати")
+        </button>
+
+        <button class="btn btn-secondary" @onclick="ClearForm">
+            Очистити
+        </button>
+    </div>
+</div>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Код</th>
+            <th>Номер цеху</th>
+            <th>Тривалість</th>
+            <th>Вартість</th>
+            <th>Дії</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var operation in OperationList)
+        {
+            <tr>
+                <td>@operation.OperationCode</td>
+                <td>@operation.WorkshopNumber</td>
+                <td>@operation.DurationHours</td>
+                <td>@operation.Cost</td>
+                <td>
+                    <button class="btn btn-warning btn-sm me-2" @onclick="() => EditOperation(operation)">
+                        Редагувати
+                    </button>
+
+                    <button class="btn btn-danger btn-sm" @onclick="() => DeleteOperation(operation.OperationCode)">
+                        Видалити
+                    </button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<Operation> OperationList = new();
+    private Operation CurrentOperation = new();
+
+    private bool IsEditMode = false;
+    private string Message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadOperations();
+    }
+
+    private async Task LoadOperations()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+
+        OperationList = await context.Operations
+            .OrderBy(o => o.OperationCode)
+            .ToListAsync();
+    }
+
+    private async Task SaveOperation()
+    {
+        Message = "";
+
+        if (CurrentOperation.OperationCode <= 0)
+        {
+            Message = "Помилка! Код операції має бути більшим за 0.";
+            return;
+        }
+
+        if (CurrentOperation.WorkshopNumber <= 0 || CurrentOperation.WorkshopNumber > 20)
+        {
+            Message = "Помилка! Номер цеху має бути від 1 до 20.";
+            return;
+        }
+
+        if (CurrentOperation.DurationHours <= 0 || CurrentOperation.DurationHours > 8)
+        {
+            Message = "Помилка! Тривалість операції має бути від 1 до 8 годин.";
+            return;
+        }
+
+        if (CurrentOperation.Cost <= 0)
+        {
+            Message = "Помилка! Вартість повинна бути більшою за 0.";
+            return;
+        }
+
+        using var context = await DbFactory.CreateDbContextAsync();
+
+        if (IsEditMode)
+        {
+            var existing = await context.Operations.FindAsync(CurrentOperation.OperationCode);
+
+            if (existing == null)
+            {
+                Message = "Помилка! Операцію не знайдено.";
+                return;
+            }
+
+            existing.WorkshopNumber = CurrentOperation.WorkshopNumber;
+            existing.DurationHours = CurrentOperation.DurationHours;
+            existing.Cost = Math.Round(CurrentOperation.Cost, 2);
+
+            Message = "Операцію успішно оновлено.";
+        }
+        else
+        {
+            var exists = await context.Operations
+                .AnyAsync(o => o.OperationCode == CurrentOperation.OperationCode);
+
+            if (exists)
+            {
+                Message = "Помилка! Операція з таким кодом вже існує.";
+                return;
+            }
+
+            context.Operations.Add(new Operation
+            {
+                OperationCode = CurrentOperation.OperationCode,
+                WorkshopNumber = CurrentOperation.WorkshopNumber,
+                DurationHours = CurrentOperation.DurationHours,
+                Cost = Math.Round(CurrentOperation.Cost, 2)
+            });
+
+            Message = "Операцію успішно додано.";
+        }
+
+        await context.SaveChangesAsync();
+
+        ClearForm();
+        await LoadOperations();
+    }
+
+    private void EditOperation(Operation operation)
+    {
+        CurrentOperation = new Operation
+        {
+            OperationCode = operation.OperationCode,
+            WorkshopNumber = operation.WorkshopNumber,
+            DurationHours = operation.DurationHours,
+            Cost = operation.Cost
+        };
+
+        IsEditMode = true;
+        Message = "";
+    }
+
+    private async Task DeleteOperation(int id)
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+
+        var operation = await context.Operations.FindAsync(id);
+
+        if (operation == null)
+        {
+            Message = "Помилка! Операцію не знайдено.";
+            return;
+        }
+
+        context.Operations.Remove(operation);
+        await context.SaveChangesAsync();
+
+        Message = "Операцію видалено!";
+
+        ClearForm();
+        await LoadOperations();
+    }
+
+    private void ClearForm()
+    {
+        CurrentOperation = new Operation();
+        IsEditMode = false;
+    }
+}

@@ -1,0 +1,225 @@
+﻿@page "/details"
+@rendermode InteractiveServer
+
+@using Domain
+@using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<Storage> DbFactory
+
+<h3>Деталі</h3>
+
+@if (!string.IsNullOrWhiteSpace(Message))
+{
+    <div class="alert alert-info">@Message</div>
+}
+
+<div class="card mb-4">
+    <div class="card-header">
+        @(IsEditMode ? "Редагування деталі" : "Додавання деталі")
+    </div>
+
+    <div class="card-body">
+        <div class="mb-2">
+            <label>Код деталі</label>
+            <input class="form-control" type="number" @bind="CurrentDetail.DetailCode" disabled="@IsEditMode" />
+        </div>
+
+        <div class="mb-2">
+            <label>Децимальний номер</label>
+            <input class="form-control" @bind="CurrentDetail.DecimalNumber" />
+        </div>
+
+        <div class="mb-2">
+            <label>Назва деталі</label>
+            <input class="form-control" @bind="CurrentDetail.DetailName" />
+        </div>
+
+        <div class="mb-2">
+            <label>Марка сплаву</label>
+            <input class="form-control" @bind="CurrentDetail.AlloyGrade" />
+        </div>
+
+        <div class="mb-2">
+            <label>Маса, кг</label>
+            <input class="form-control" type="number" step="0.001" @bind="CurrentDetail.Mass" />
+        </div>
+
+        <button class="btn btn-primary me-2" @onclick="SaveDetail">
+            @(IsEditMode ? "Зберегти зміни" : "Додати")
+        </button>
+
+        <button class="btn btn-secondary" @onclick="ClearForm">
+            Очистити
+        </button>
+    </div>
+</div>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Код</th>
+            <th>Децимальний номер</th>
+            <th>Назва</th>
+            <th>Марка сплаву</th>
+            <th>Маса</th>
+            <th>Дії</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var detail in DetailList)
+        {
+            <tr>
+                <td>@detail.DetailCode</td>
+                <td>@detail.DecimalNumber</td>
+                <td>@detail.DetailName</td>
+                <td>@detail.AlloyGrade</td>
+                <td>@detail.Mass</td>
+                <td>
+                    <button class="btn btn-warning btn-sm me-2" @onclick="() => EditDetail(detail)">
+                        Редагувати
+                    </button>
+
+                    <button class="btn btn-danger btn-sm" @onclick="() => DeleteDetail(detail.DetailCode)">
+                        Видалити
+                    </button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<Detail> DetailList = new();
+    private Detail CurrentDetail = new();
+
+    private bool IsEditMode = false;
+    private string Message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDetails();
+    }
+
+    private async Task LoadDetails()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+
+        DetailList = await context.Details
+            .OrderBy(d => d.DetailCode)
+            .ToListAsync();
+    }
+
+    private async Task SaveDetail()
+    {
+        Message = "";
+
+        if (CurrentDetail.DetailCode <= 0)
+        {
+            Message = "Помилка! Код деталі має бути більшим за 0.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(CurrentDetail.DecimalNumber) ||
+            string.IsNullOrWhiteSpace(CurrentDetail.DetailName) ||
+            string.IsNullOrWhiteSpace(CurrentDetail.AlloyGrade))
+        {
+            Message = "Помилка! Заповніть усі текстові поля.";
+            return;
+        }
+
+        if (CurrentDetail.Mass <= 0)
+        {
+            Message = "Помилка! Маса повинна бути більшою за 0.";
+            return;
+        }
+
+        using var context = await DbFactory.CreateDbContextAsync();
+
+        if (IsEditMode)
+        {
+            var existing = await context.Details.FindAsync(CurrentDetail.DetailCode);
+
+            if (existing == null)
+            {
+                Message = "Помилка! Деталь не знайдено.";
+                return;
+            }
+
+            existing.DecimalNumber = CurrentDetail.DecimalNumber;
+            existing.DetailName = CurrentDetail.DetailName;
+            existing.AlloyGrade = CurrentDetail.AlloyGrade;
+            existing.Mass = CurrentDetail.Mass;
+
+            Message = "Деталь успішно оновлено.";
+        }
+        else
+        {
+            var exists = await context.Details
+                .AnyAsync(d => d.DetailCode == CurrentDetail.DetailCode);
+
+            if (exists)
+            {
+                Message = "Помилка! Деталь з таким кодом вже існує.";
+                return;
+            }
+
+            context.Details.Add(new Detail
+            {
+                DetailCode = CurrentDetail.DetailCode,
+                DecimalNumber = CurrentDetail.DecimalNumber,
+                DetailName = CurrentDetail.DetailName,
+                AlloyGrade = CurrentDetail.AlloyGrade,
+                Mass = CurrentDetail.Mass
+            });
+
+            Message = "Деталь успішно додано.";
+        }
+
+        await context.SaveChangesAsync();
+
+        ClearForm();
+        await LoadDetails();
+    }
+
+    private void EditDetail(Detail detail)
+    {
+        CurrentDetail = new Detail
+        {
+            DetailCode = detail.DetailCode,
+            DecimalNumber = detail.DecimalNumber,
+            DetailName = detail.DetailName,
+            AlloyGrade = detail.AlloyGrade,
+            Mass = detail.Mass
+        };
+
+        IsEditMode = true;
+        Message = "";
+    }
+
+    private async Task DeleteDetail(int id)
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+
+        var detail = await context.Details.FindAsync(id);
+
+        if (detail == null)
+        {
+            Message = "Помилка! Деталь не знайдено.";
+            return;
+        }
+
+        context.Details.Remove(detail);
+        await context.SaveChangesAsync();
+
+        Message = "Деталь видалено!";
+
+        ClearForm();
+        await LoadDetails();
+    }
+
+    private void ClearForm()
+    {
+        CurrentDetail = new Detail();
+        IsEditMode = false;
+    }
+}

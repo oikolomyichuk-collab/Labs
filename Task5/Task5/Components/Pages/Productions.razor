@@ -1,0 +1,261 @@
+﻿@page "/productions"
+@rendermode InteractiveServer
+
+@using Domain
+@using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<Storage> DbFactory
+
+<h3>Виробництво</h3>
+
+@if (!string.IsNullOrWhiteSpace(Message))
+{
+    <div class="alert alert-info">@Message</div>
+}
+
+<div class="card mb-4">
+    <div class="card-header">
+        @(IsEditMode ? "Редагування запису виробництва" : "Додавання запису виробництва")
+    </div>
+
+    <div class="card-body">
+        <div class="mb-2">
+            <label>Код деталі</label>
+            <select class="form-control" @bind="CurrentProduction.DetailCode" disabled="@IsEditMode">
+                <option value="0">Оберіть деталь</option>
+                @foreach (var detail in DetailList)
+                {
+                    <option value="@detail.DetailCode">
+                        @detail.DetailCode - @detail.DetailName
+                    </option>
+                }
+            </select>
+        </div>
+
+        <div class="mb-2">
+            <label>Номер операції в технологічному процесі</label>
+            <input class="form-control"
+                   type="number"
+                   @bind="CurrentProduction.OperationNumberInProcess"
+                   disabled="@IsEditMode" />
+        </div>
+
+        <div class="mb-2">
+            <label>Код операції</label>
+            <select class="form-control" @bind="CurrentProduction.OperationCode">
+                <option value="0">Оберіть операцію</option>
+                @foreach (var operation in OperationList)
+                {
+                    <option value="@operation.OperationCode">
+                        @operation.OperationCode - цех @operation.WorkshopNumber
+                    </option>
+                }
+            </select>
+        </div>
+
+        <button class="btn btn-primary me-2" @onclick="SaveProduction">
+            @(IsEditMode ? "Зберегти зміни" : "Додати")
+        </button>
+
+        <button class="btn btn-secondary" @onclick="ClearForm">
+            Очистити
+        </button>
+    </div>
+</div>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Код деталі</th>
+            <th>Назва деталі</th>
+            <th>Номер операції</th>
+            <th>Код операції</th>
+            <th>Цех</th>
+            <th>Тривалість</th>
+            <th>Вартість</th>
+            <th>Дії</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var production in ProductionList)
+        {
+            <tr>
+                <td>@production.DetailCode</td>
+                <td>@production.Detail?.DetailName</td>
+                <td>@production.OperationNumberInProcess</td>
+                <td>@production.OperationCode</td>
+                <td>@production.Operation?.WorkshopNumber</td>
+                <td>@production.Operation?.DurationHours</td>
+                <td>@production.Operation?.Cost</td>
+                <td>
+                    <button class="btn btn-warning btn-sm me-2"
+                            @onclick="() => EditProduction(production)">
+                        Редагувати
+                    </button>
+
+                    <button class="btn btn-danger btn-sm"
+                            @onclick="() => DeleteProduction(production.DetailCode, production.OperationNumberInProcess)">
+                        Видалити
+                    </button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<Production> ProductionList = new();
+    private List<Detail> DetailList = new();
+    private List<Operation> OperationList = new();
+
+    private Production CurrentProduction = new();
+
+    private bool IsEditMode = false;
+    private string Message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+
+        DetailList = await context.Details
+            .OrderBy(d => d.DetailCode)
+            .ToListAsync();
+
+        OperationList = await context.Operations
+            .OrderBy(o => o.OperationCode)
+            .ToListAsync();
+
+        ProductionList = await context.Productions
+            .Include(p => p.Detail)
+            .Include(p => p.Operation)
+            .OrderBy(p => p.DetailCode)
+            .ThenBy(p => p.OperationNumberInProcess)
+            .ToListAsync();
+    }
+
+    private async Task SaveProduction()
+    {
+        Message = "";
+
+        if (CurrentProduction.DetailCode <= 0)
+        {
+            Message = "Помилка! Оберіть деталь.";
+            return;
+        }
+
+        if (CurrentProduction.OperationNumberInProcess <= 0 ||
+            CurrentProduction.OperationNumberInProcess > 100)
+        {
+            Message = "Помилка! Номер операції має бути від 1 до 100.";
+            return;
+        }
+
+        if (CurrentProduction.OperationCode <= 0)
+        {
+            Message = "Помилка! Оберіть операцію.";
+            return;
+        }
+
+        using var context = await DbFactory.CreateDbContextAsync();
+
+        var detailExists = await context.Details
+            .AnyAsync(d => d.DetailCode == CurrentProduction.DetailCode);
+
+        var operationExists = await context.Operations
+            .AnyAsync(o => o.OperationCode == CurrentProduction.OperationCode);
+
+        if (!detailExists || !operationExists)
+        {
+            Message = "Помилка! Деталь або операція не існує.";
+            return;
+        }
+
+        if (IsEditMode)
+        {
+            var existing = await context.Productions.FindAsync(
+                CurrentProduction.DetailCode,
+                CurrentProduction.OperationNumberInProcess);
+
+            if (existing == null)
+            {
+                Message = "Помилка! Запис виробництва не знайдено.";
+                return;
+            }
+
+            existing.OperationCode = CurrentProduction.OperationCode;
+
+            Message = "Запис виробництва успішно оновлено.";
+        }
+        else
+        {
+            var exists = await context.Productions.AnyAsync(p =>
+                p.DetailCode == CurrentProduction.DetailCode &&
+                p.OperationNumberInProcess == CurrentProduction.OperationNumberInProcess);
+
+            if (exists)
+            {
+                Message = "Помилка! Для цієї деталі вже існує операція з таким номером.";
+                return;
+            }
+
+            context.Productions.Add(new Production
+            {
+                DetailCode = CurrentProduction.DetailCode,
+                OperationNumberInProcess = CurrentProduction.OperationNumberInProcess,
+                OperationCode = CurrentProduction.OperationCode
+            });
+
+            Message = "Запис виробництва успішно додано.";
+        }
+
+        await context.SaveChangesAsync();
+
+        ClearForm();
+        await LoadData();
+    }
+
+    private void EditProduction(Production production)
+    {
+        CurrentProduction = new Production
+        {
+            DetailCode = production.DetailCode,
+            OperationNumberInProcess = production.OperationNumberInProcess,
+            OperationCode = production.OperationCode
+        };
+
+        IsEditMode = true;
+        Message = "";
+    }
+
+    private async Task DeleteProduction(int detailCode, int operationNumber)
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+
+        var production = await context.Productions.FindAsync(detailCode, operationNumber);
+
+        if (production == null)
+        {
+            Message = "Помилка! Запис виробництва не знайдено.";
+            return;
+        }
+
+        context.Productions.Remove(production);
+        await context.SaveChangesAsync();
+
+        Message = "Запис виробництва видалено.";
+
+        ClearForm();
+        await LoadData();
+    }
+
+    private void ClearForm()
+    {
+        CurrentProduction = new Production();
+        IsEditMode = false;
+    }
+}

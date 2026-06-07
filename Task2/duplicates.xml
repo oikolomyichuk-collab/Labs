@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<DuplicatesReport ToolsVersion="212.0.20211221.192418">
+  <Statistics>
+    <CodebaseCost>19637</CodebaseCost>
+    <TotalDuplicatesCost>423</TotalDuplicatesCost>
+    <TotalFragmentsCost>1038</TotalFragmentsCost>
+  </Statistics>
+  <Duplicates>
+    <Duplicate Cost="192">
+      <Fragment>
+        <FileName>Domain.Tests\ProductionTests.cs</FileName>
+        <OffsetRange Start="5224" End="6201"></OffsetRange>
+        <LineRange Start="154" End="183"></LineRange>
+      </Fragment>
+      <Fragment>
+        <FileName>Domain.Tests\ProductionTests.cs</FileName>
+        <OffsetRange Start="6869" End="7846"></OffsetRange>
+        <LineRange Start="205" End="234"></LineRange>
+      </Fragment>
+      <Fragment>
+        <FileName>Domain.Tests\ProductionTests.cs</FileName>
+        <OffsetRange Start="8450" End="9427"></OffsetRange>
+        <LineRange Start="254" End="283"></LineRange>
+      </Fragment>
+    </Duplicate>
+    <Duplicate Cost="131">
+      <Fragment>
+        <FileName>Domain.Tests\ProductionTests.cs</FileName>
+        <OffsetRange Start="2180" End="2735"></OffsetRange>
+        <LineRange Start="71" End="83"></LineRange>
+      </Fragment>
+      <Fragment>
+        <FileName>Domain.Tests\ProductionTests.cs</FileName>
+        <OffsetRange Start="3663" End="4218"></OffsetRange>
+        <LineRange Start="109" End="121"></LineRange>
+      </Fragment>
+    </Duplicate>
+    <Duplicate Cost="100">
+      <Fragment>
+        <FileName>Domain.Tests\OperationTests.cs</FileName>
+        <OffsetRange Start="2242" End="2702"></OffsetRange>
+        <LineRange Start="69" End="81"></LineRange>
+      </Fragment>
+      <Fragment>
+        <FileName>Domain.Tests\OperationTests.cs</FileName>
+        <OffsetRange Start="3400" End="3860"></OffsetRange>
+        <LineRange Start="104" End="116"></LineRange>
+      </Fragment>
+    </Duplicate>
+  </Duplicates>
+</DuplicatesReport>
